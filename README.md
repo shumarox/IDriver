@@ -1,8 +1,8 @@
 # i!Driver
 JDBC Driver Wrapper
 
-#### 動機
-JDBC呼び出し前後に割り込んで引数の改変、ログ出力、戻り値の改変などを行えるようにしたい。
+#### 用途
+JDBC呼び出し前後に割り込んで、引数/戻り値改変やログ出力などが行えるようにJDBCドライバをラップ
 
 #### 標準動作
 SQLなどを標準出力へ出力する。
@@ -19,5 +19,5 @@ JDBC接続URLの先頭に"i!"を付加
 2020/03/28 01:46:21.945 (i!)test.ice.jdbc.DConnection@49c386c8.close() returned time: 0.000 from: test.ice.jdbc.IDriverTestFromJava.test(IDriverTestFromJava.java:68)
 ```
 
-#### カスタマイズ例
+#### 使用例
 https://github.com/shumarox/IDriver/blob/master/src/test/java/test/ice/jdbc/IDriverTestFromJava.java
