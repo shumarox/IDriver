@@ -45,9 +45,7 @@ class StandardLogWorker extends IExtraWorker {
       }.getOrElse("")
   }
 
-  protected def formatAndReplaceCRLF(a: Any): String = Option(a).map {
-    _.toString.replaceAll("[\r\n]", "\t")
-  }.orNull
+  protected def formatAndReplaceCRLF(a: Any): String = Option(a).map(_.toString.replaceAll("[\r\n]", "\t")).orNull
 
   protected def formatResult(either: Either[Throwable, Any]): String = {
     either match {

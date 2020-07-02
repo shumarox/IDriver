@@ -5,14 +5,31 @@ import java.util
 import java.util.Properties
 import java.util.concurrent.Executor
 
+object IConnection {
+  var statementWrappingEnabled: Boolean = true
+  var preparedStatementWrappingEnabled: Boolean = true
+  var callableStatementWrappingEnabled: Boolean = true
+}
+
 class IConnection(val driver: IDriver, val unwrappedUrl: String, val connection: Connection) extends Connection with IExtraWorkerHandler {
+
+  import IConnection._
+
+  def createWrappedStatement(statement: Statement): Statement =
+    if (statementWrappingEnabled) new IStatement(this, statement) else statement
+
+  def createWrappedPreparedStatement(preparedStatement: PreparedStatement, sql: String): PreparedStatement =
+    if (preparedStatementWrappingEnabled) new IPreparedStatement(this, preparedStatement, sql) else preparedStatement
+
+  def createWrappedCallableStatement(callableStatement: CallableStatement, sql: String): CallableStatement =
+    if (callableStatementWrappingEnabled) new ICallableStatement(this, callableStatement, sql) else callableStatement
 
   override def toString: String = s"(i!)${connection.toString}"
 
   override def close(): Unit = withExtraWork("close") { _ => connection.close() }
-  override def createStatement(): Statement = withExtraWork("createStatement") { _ => new IStatement(this, connection.createStatement()) }
-  override def prepareStatement(sql: String): PreparedStatement = withExtraWork("prepareStatement", Tuple1(sql)) { case Tuple1(sql) => new IPreparedStatement(this, connection.prepareStatement(sql), sql) }
-  override def prepareCall(sql: String): CallableStatement = withExtraWork("prepareCall", Tuple1(sql)) { case Tuple1(sql) => new ICallableStatement(this, connection.prepareCall(sql), sql) }
+  override def createStatement(): Statement = withExtraWork("createStatement") { _ => createWrappedStatement(connection.createStatement()) }
+  override def prepareStatement(sql: String): PreparedStatement = withExtraWork("prepareStatement", Tuple1(sql)) { case Tuple1(sql) => createWrappedPreparedStatement(connection.prepareStatement(sql), sql) }
+  override def prepareCall(sql: String): CallableStatement = withExtraWork("prepareCall", Tuple1(sql)) { case Tuple1(sql) => createWrappedCallableStatement(connection.prepareCall(sql), sql) }
   override def nativeSQL(sql: String): String = withExtraWork("nativeSQL", Tuple1(sql)) { case Tuple1(sql) => connection.nativeSQL(sql) }
   override def setAutoCommit(autoCommit: Boolean): Unit = withExtraWork("setAutoCommit", Tuple1(autoCommit)) { case Tuple1(autoCommit) => connection.setAutoCommit(autoCommit) }
   override def getAutoCommit: Boolean = withExtraWork("getAutoCommit") { _ => connection.getAutoCommit }
@@ -28,9 +45,9 @@ class IConnection(val driver: IDriver, val unwrappedUrl: String, val connection:
   override def getTransactionIsolation: Int = withExtraWork("getTransactionIsolation") { _ => connection.getTransactionIsolation }
   override def getWarnings: SQLWarning = withExtraWork("getWarnings") { _ => connection.getWarnings }
   override def clearWarnings(): Unit = withExtraWork("clearWarnings") { _ => connection.clearWarnings() }
-  override def createStatement(resultSetType: Int, resultSetConcurrency: Int): Statement = withExtraWork("createStatement", (resultSetType, resultSetConcurrency)) { case (resultSetType, resultSetConcurrency) => new IStatement(this, connection.createStatement(resultSetType, resultSetConcurrency)) }
-  override def prepareStatement(sql: String, resultSetType: Int, resultSetConcurrency: Int): PreparedStatement = withExtraWork("prepareStatement", (sql, resultSetType, resultSetConcurrency)) { case (sql, resultSetType, resultSetConcurrency) => new IPreparedStatement(this, connection.prepareStatement(sql, resultSetType, resultSetConcurrency), sql) }
-  override def prepareCall(sql: String, resultSetType: Int, resultSetConcurrency: Int): CallableStatement = withExtraWork("prepareCall", (sql, resultSetType, resultSetConcurrency)) { case (sql, resultSetType, resultSetConcurrency) => new ICallableStatement(this, connection.prepareCall(sql, resultSetType, resultSetConcurrency), sql) }
+  override def createStatement(resultSetType: Int, resultSetConcurrency: Int): Statement = withExtraWork("createStatement", (resultSetType, resultSetConcurrency)) { case (resultSetType, resultSetConcurrency) => createWrappedStatement(connection.createStatement(resultSetType, resultSetConcurrency)) }
+  override def prepareStatement(sql: String, resultSetType: Int, resultSetConcurrency: Int): PreparedStatement = withExtraWork("prepareStatement", (sql, resultSetType, resultSetConcurrency)) { case (sql, resultSetType, resultSetConcurrency) => createWrappedPreparedStatement(connection.prepareStatement(sql, resultSetType, resultSetConcurrency), sql) }
+  override def prepareCall(sql: String, resultSetType: Int, resultSetConcurrency: Int): CallableStatement = withExtraWork("prepareCall", (sql, resultSetType, resultSetConcurrency)) { case (sql, resultSetType, resultSetConcurrency) => createWrappedCallableStatement(connection.prepareCall(sql, resultSetType, resultSetConcurrency), sql) }
   override def getTypeMap: util.Map[String, Class[_]] = withExtraWork("getTypeMap") { _ => connection.getTypeMap }
   override def setTypeMap(map: util.Map[String, Class[_]]): Unit = withExtraWork("setTypeMap", Tuple1(map)) { case Tuple1(map) => connection.setTypeMap(map) }
   override def setHoldability(holdability: Int): Unit = withExtraWork("setHoldability", Tuple1(holdability)) { case Tuple1(holdability) => connection.setHoldability(holdability) }
@@ -39,12 +56,12 @@ class IConnection(val driver: IDriver, val unwrappedUrl: String, val connection:
   override def setSavepoint(name: String): Savepoint = withExtraWork("setSavepoint", Tuple1(name)) { case Tuple1(name) => connection.setSavepoint(name) }
   override def rollback(savepoint: Savepoint): Unit = withExtraWork("rollback", Tuple1(savepoint)) { case Tuple1(savepoint) => connection.rollback(savepoint) }
   override def releaseSavepoint(savepoint: Savepoint): Unit = withExtraWork("releaseSavepoint", Tuple1(savepoint)) { case Tuple1(savepoint) => connection.releaseSavepoint(savepoint) }
-  override def createStatement(resultSetType: Int, resultSetConcurrency: Int, resultSetHoldability: Int): Statement = withExtraWork("createStatement", (resultSetType, resultSetConcurrency, resultSetHoldability)) { case (resultSetType, resultSetConcurrency, resultSetHoldability) => new IStatement(this, connection.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability)) }
-  override def prepareStatement(sql: String, resultSetType: Int, resultSetConcurrency: Int, resultSetHoldability: Int): PreparedStatement = withExtraWork("prepareStatement", (sql, resultSetType, resultSetConcurrency, resultSetHoldability)) { case (sql, resultSetType, resultSetConcurrency, resultSetHoldability) => new IPreparedStatement(this, connection.prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability), sql) }
-  override def prepareCall(sql: String, resultSetType: Int, resultSetConcurrency: Int, resultSetHoldability: Int): CallableStatement = withExtraWork("prepareCall", (sql, resultSetType, resultSetConcurrency, resultSetHoldability)) { case (sql, resultSetType, resultSetConcurrency, resultSetHoldability) => new ICallableStatement(this, connection.prepareCall(sql, resultSetType, resultSetConcurrency, resultSetHoldability), sql) }
-  override def prepareStatement(sql: String, autoGeneratedKeys: Int): PreparedStatement = withExtraWork("prepareStatement", (sql, autoGeneratedKeys)) { case (sql, autoGeneratedKeys) => new IPreparedStatement(this, connection.prepareStatement(sql, autoGeneratedKeys), sql) }
-  override def prepareStatement(sql: String, columnIndexes: Array[Int]): PreparedStatement = withExtraWork("prepareStatement", (sql, columnIndexes)) { case (sql, columnIndexes) => new IPreparedStatement(this, connection.prepareStatement(sql, columnIndexes), sql) }
-  override def prepareStatement(sql: String, columnNames: Array[String]): PreparedStatement = withExtraWork("prepareStatement", (sql, columnNames)) { case (sql, columnNames) => new IPreparedStatement(this, connection.prepareStatement(sql, columnNames), sql) }
+  override def createStatement(resultSetType: Int, resultSetConcurrency: Int, resultSetHoldability: Int): Statement = withExtraWork("createStatement", (resultSetType, resultSetConcurrency, resultSetHoldability)) { case (resultSetType, resultSetConcurrency, resultSetHoldability) => createWrappedStatement(connection.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability)) }
+  override def prepareStatement(sql: String, resultSetType: Int, resultSetConcurrency: Int, resultSetHoldability: Int): PreparedStatement = withExtraWork("prepareStatement", (sql, resultSetType, resultSetConcurrency, resultSetHoldability)) { case (sql, resultSetType, resultSetConcurrency, resultSetHoldability) => createWrappedPreparedStatement(connection.prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability), sql) }
+  override def prepareCall(sql: String, resultSetType: Int, resultSetConcurrency: Int, resultSetHoldability: Int): CallableStatement = withExtraWork("prepareCall", (sql, resultSetType, resultSetConcurrency, resultSetHoldability)) { case (sql, resultSetType, resultSetConcurrency, resultSetHoldability) => createWrappedCallableStatement(connection.prepareCall(sql, resultSetType, resultSetConcurrency, resultSetHoldability), sql) }
+  override def prepareStatement(sql: String, autoGeneratedKeys: Int): PreparedStatement = withExtraWork("prepareStatement", (sql, autoGeneratedKeys)) { case (sql, autoGeneratedKeys) => createWrappedPreparedStatement(connection.prepareStatement(sql, autoGeneratedKeys), sql) }
+  override def prepareStatement(sql: String, columnIndexes: Array[Int]): PreparedStatement = withExtraWork("prepareStatement", (sql, columnIndexes)) { case (sql, columnIndexes) => createWrappedPreparedStatement(connection.prepareStatement(sql, columnIndexes), sql) }
+  override def prepareStatement(sql: String, columnNames: Array[String]): PreparedStatement = withExtraWork("prepareStatement", (sql, columnNames)) { case (sql, columnNames) => createWrappedPreparedStatement(connection.prepareStatement(sql, columnNames), sql) }
   override def createClob(): Clob = withExtraWork("createClob") { _ => connection.createClob() }
   override def createBlob(): Blob = withExtraWork("createBlob") { _ => connection.createBlob() }
   override def createNClob(): NClob = withExtraWork("createNClob") { _ => connection.createNClob() }

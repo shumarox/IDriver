@@ -1,7 +1,7 @@
 name := "IDriver"
-version := "0.0.1"
+version := "0.0.2"
 
-scalaVersion := "2.13.1"
+scalaVersion := "2.13.3"
 
 crossPaths := false
 

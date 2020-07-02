@@ -13,7 +13,7 @@ class IPreparedStatement(connection: IConnection, val preparedStatement: Prepare
 
   override def close(): Unit = withExtraWork("close") { _ => clearAllBindValues(); preparedStatement.close() }
 
-  override def executeQuery(): ResultSet = withExtraWork("executeQuery") { _ => moveTempBindValuesToUsed(); new IResultSet(this, preparedStatement.executeQuery()) }
+  override def executeQuery(): ResultSet = withExtraWork("executeQuery") { _ => moveTempBindValuesToUsed(); createWrappedResultSet(preparedStatement.executeQuery()) }
   override def executeUpdate(): Int = withExtraWork("executeUpdate") { _ => moveTempBindValuesToUsed(); preparedStatement.executeUpdate() }
   override def setNull(parameterIndex: Int, sqlType: Int): Unit = withExtraWork("setNull", (parameterIndex, sqlType)) { case (parameterIndex, sqlType) => putTempBindValue(parameterIndex, null); preparedStatement.setNull(parameterIndex, sqlType) }
   override def setBoolean(parameterIndex: Int, x: Boolean): Unit = withExtraWork("setBoolean", (parameterIndex, x)) { case (parameterIndex, x) => putTempBindValue(parameterIndex, x); preparedStatement.setBoolean(parameterIndex, x) }
@@ -111,7 +111,7 @@ trait IBindValueHolder { self: IPreparedStatement =>
     }
   }
 
-  private def getClassName(value: Any): String = Option(value).map { _.getClass.getName }.getOrElse("null")
+  private def getClassName(value: Any): String = Option(value).map(_.getClass.getName).getOrElse("null")
 
   private def escape(value: Any): String = {
     value match {
