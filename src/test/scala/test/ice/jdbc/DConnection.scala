@@ -21,7 +21,7 @@ class DConnection(private val uri: String, private val info: Properties) extends
 
   override def nativeSQL(sql: String): String = ???
 
-  override def setAutoCommit(autoCommit: Boolean): Unit = ???
+  override def setAutoCommit(autoCommit: Boolean): Unit = println(s"conn.setAutoCommit($autoCommit)")
 
   override def getAutoCommit: Boolean = ???
 

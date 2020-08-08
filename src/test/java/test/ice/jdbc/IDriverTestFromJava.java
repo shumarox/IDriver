@@ -53,6 +53,8 @@ public class IDriverTestFromJava {
                 props.setProperty("password", "himitsu");
 
                 try (Connection con = DriverManager.getConnection(url, props)) {
+                    con.setAutoCommit(false);
+
                     try (PreparedStatement ps = con.prepareStatement("SELECT * FROM TEST\nWHERE X IN (?, ?)")) {
                         ps.setString(1, "foo");
                         ps.setString(2, "var");

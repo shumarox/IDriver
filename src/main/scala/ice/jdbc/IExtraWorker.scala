@@ -84,6 +84,8 @@ class StandardLogWorker extends IExtraWorker {
       // 受け入れ可能なURLでない場合のnull返却は出力対象外
       case (_: IDriver, "connect", (url, info), _) =>
         write(s"${makeMessageString(target, name, (url, mask(info)), result, time)}")
+      case (_: IConnection, "setAutoCommit", _, _) =>
+        write(s"$messageString")
       case (_: IConnection, "prepareStatement" | "prepareCall" | "commit" | "rollback" | "close", _, _) =>
         write(s"$messageString")
       case (ps: IPreparedStatement, "executeQuery" | "executeUpdate" | "execute" | "addBatch", (), _) =>

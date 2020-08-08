@@ -42,6 +42,8 @@ class IDriverTest {
         }
 
         Using.resource(DriverManager.getConnection(url, props)) { con =>
+          con.setAutoCommit(false)
+
           Using.resource(con.prepareStatement("SELECT * FROM TEST\nWHERE X IN (?, ?)")) { ps =>
             ps.setString(1, "foo")
             ps.setString(2, "var")
