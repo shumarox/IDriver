@@ -26,7 +26,7 @@ public class IDriverTestFromJava {
             try (Writer writer = new BufferedWriter(new FileWriter("./IDriverTest.log", true))) {
                 // 標準ログワーカーをカスタマイズして登録
                 IExtraWorkerHandler.setExtraWorker(new StandardLogWorker() {
-                    Pattern pattern = Pattern.compile("^(java\\.|scala\\.|ice\\.jdbc\\.).*");
+                    final Pattern pattern = Pattern.compile("^(java\\.|scala\\.|ice\\.jdbc\\.).*");
 
                     @Override
                     public boolean isSkipClassName(String s) {
@@ -61,7 +61,7 @@ public class IDriverTestFromJava {
 
                         try (ResultSet rs = ps.executeQuery()) {
                             while (rs.next()) {
-                                System.out.println(String.format("result: (%s, %s)", rs.getString(1), rs.getString(2)));
+                                System.out.printf("result: (%s, %s)%n", rs.getString(1), rs.getString(2));
                             }
                         }
 
