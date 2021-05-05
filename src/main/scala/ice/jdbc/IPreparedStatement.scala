@@ -283,9 +283,9 @@ trait IBindValueHolder {
       case s: String =>
         s.replaceAll("'", "''")
       case t: Timestamp =>
-        new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS", Locale.UK).format(t)
+        SynchronizedDateFormat.DateTimeMllis.format(t)
       case d: Date =>
-        new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.UK).format(d)
+        SynchronizedDateFormat.DateTime.format(d)
       case _ =>
         value.toString
     }
@@ -300,9 +300,9 @@ trait IBindValueHolder {
       case s: String =>
         "'" + s.replaceAll("'", "''") + "'"
       case t: Timestamp =>
-        "'" + new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS", Locale.UK).format(t) + "'"
+        "'" + SynchronizedDateFormat.DateTimeMllis.format(t) + "'"
       case d: Date =>
-        "'" + new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.UK).format(d) + "'"
+        "'" + SynchronizedDateFormat.DateTime.format(d) + "'"
       case _ =>
         value.toString
     }

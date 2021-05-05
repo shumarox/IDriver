@@ -58,7 +58,7 @@ class StandardLogWorker extends IExtraWorker {
   protected def formatTime(time: Long): String = s"time: ${time / 1000}.${"%03d".format(time % 1000)}"
 
   protected def currentTime: String =
-    new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS", Locale.UK).format(new Timestamp(System.currentTimeMillis()))
+    SynchronizedDateFormat.DateTimeMllis.format(new Timestamp(System.currentTimeMillis()))
 
   protected def makeMessageString(target: AnyRef, name: String, args: Any, result: Either[Throwable, Any], time: Long): String =
     s"$currentTime ${formatAndReplaceCRLF(target)}.$name${formatAndReplaceCRLF(args)} ${formatResult(result)} ${formatTime(time)} $from"
