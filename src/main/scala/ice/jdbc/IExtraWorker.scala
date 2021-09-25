@@ -61,7 +61,7 @@ class StandardLogWorker extends IExtraWorker {
     SynchronizedDateFormat.DateTimeMllis.format(new Timestamp(System.currentTimeMillis()))
 
   protected def makeMessageString(target: AnyRef, name: String, args: Any, result: Either[Throwable, Any], time: Long): String =
-    s"$currentTime ${formatAndReplaceCRLF(target)}.$name${formatAndReplaceCRLF(args)} ${formatResult(result)} ${formatTime(time)} $from"
+    s"$currentTime ${formatAndReplaceCRLF(target)}.$name ${formatAndReplaceCRLF(args)} ${formatResult(result)} ${formatTime(time)} $from"
 
   protected def makeBindInfoString(ps: IPreparedStatement): String = {
     val noBinds = ps.isUsedBindValuesEmpty
